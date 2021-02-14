@@ -35,7 +35,8 @@ class EventPlanner {
         this.renderCalendar();
         this.renderEvent(this.wraperForEvents);
         this.container.append(this.wraperForEvents);
-        this.createFormToAddEvent();  
+        this.renderBtnToAddEvent();
+       
     }
 
     set _addEvent(event){
@@ -82,18 +83,24 @@ class EventPlanner {
 
     }
 
+    renderBtnToAddEvent(){
+        let btnAddEvent = cElem('button', 'calendar__btn');
+        btnAddEvent.innerText = "+";
+
+        this.container.append(btnAddEvent);
+
+        btnAddEvent.addEventListener('click', () => {
+            this.createFormToAddEvent();      
+        });
+    }
+
     createFormToAddEvent(){
 
-        let btnAddEvent = cElem('button', 'calendar__btn');
-        let windowForAddEvent = cElem('div', 'calendar__setting-event hidden');
+     
+        let windowForAddEvent = cElem('div', 'calendar__setting-event');
         let form = cElem('form', 'calendar__form-event');
 
-        btnAddEvent.innerText = "+";
-        this.container.append(btnAddEvent);
-        
-        btnAddEvent.addEventListener('click', () => {
-            windowForAddEvent.classList.remove('hidden')
-        });
+        windowForAddEvent.innerHTML  = `<h2 class="calendar__title-event">Создать событие</h2>`;
 
         form.innerHTML = `
             <label for="calendar__input-time" class="calendar__label-time">Время</label>
@@ -109,7 +116,7 @@ class EventPlanner {
         btn.innerHTML= '&times;'
 
         btn.addEventListener('click', () => {
-            windowForAddEvent.classList.add('hidden')
+            windowForAddEvent.remove();
         });
     
         form.elements.submit.addEventListener('click', (e) => {
@@ -120,11 +127,10 @@ class EventPlanner {
             btn.click();
         });
 
-        windowForAddEvent.innerHTML  = `<h2 class="calendar__title-event">Создать событие</h2>`;
-
         windowForAddEvent.append(form, btn)
         this.container.append(windowForAddEvent);
     }
+    
     startValidation(form){
 
         if(!form.elements.time.validity.valid) return false;
@@ -211,13 +217,13 @@ class EventPlanner {
             for (let i = 0; i < beforeElem.length; i++) {  
                 tmpWidth -= beforeElem[i].width;
         
-                beforeElem.find(element => {
+                beforeElem.forEach(element => {
                     
                     if(element.left === left){
                         left = element.left + element.width;
                         
                     }
-
+               
                 });
                 item.left = left;
             }
@@ -225,7 +231,7 @@ class EventPlanner {
             item.width = tmpWidth / (afterElem + 1);
             
         });
-
+        console.log(listEvents);
         return listEvents;
        
     }
@@ -247,33 +253,10 @@ class EventPlanner {
             event.style.boxShadow = `3px 0 0 inset ${item.color}`;
             event.innerText = item.title;
 
-
-            // event.addEventListener('click', (e) => {
-            //     let changeEvent = cElem('form', 'calendar__change-event');
-
-            //     let inputStart = cElem('input', 'calendar__start-change');
-            //     let inputDuration = cElem('input', 'calendar__duration-change');
-            //     let inputTitle = cElem('input', 'calendar__change-title');
-            //     let btnChange = cElem('input', 'clendar__submit-change');
-            //     btnChange.type = 'submit'
-            //     btnChange.value = 'change'
-            //     inputStart.type = "time";
-            //     inputDuration.type = "time";
-
-            //     changeEvent.addEventListener('click', (e) =>{
-            //         e.preventDefault();
-            //         startValidation(changeEvent);
-            //     });
-
-            //     changeEvent.append(inputStart, inputDuration, inputTitle, btnChange);
-
-            //     this.container.append(changeEvent);
-            // });
-    
             container.append(event);
 
         });
-     
+        console.log(container);
     }
   
 }
