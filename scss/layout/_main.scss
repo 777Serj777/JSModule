@@ -1,0 +1,202 @@
+.main{
+
+    .calendar{   
+        position: relative;
+        width: fit-content;
+        display: flex;
+        margin: 0 auto;
+        justify-content: center;
+        padding: 2rem;
+
+        &__list-time{
+            list-style: none;
+        }
+
+        &__event{
+            width: 20rem;     
+        }
+
+        %time{
+            height: 12rem;
+        }
+
+        &__hour{ 
+            @extend%time;             
+            
+            &::before{
+                display: block;
+                content: "";
+                position: absolute;
+                left: 0;
+                right: 0;
+                height: .02rem;
+                background-color: rgba(190, 182, 182, 0.2);
+            }
+           
+            .calendar__time{
+                font-size: 1.6rem;
+            }
+        }
+
+        &__half-hour{
+            @extend%time;        
+            
+            .calendar__time{
+                font-size: 1.4rem;
+            }
+        }
+
+        &__time{
+            color: rgb(138, 133, 133);
+            line-height: .85;
+        }
+
+        &__event{   
+            
+            list-style: none;
+            position: relative;
+  
+        }
+        &__event-item{
+        
+            position: absolute;
+            width: 100%;
+            padding: 6px 0 0 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 14px;
+            background-color: rgba($color: #E2ECF5, $alpha: 1.0);
+            box-shadow: 3px 0 0 inset rgba($color: #6E9ECF, $alpha: 1.0);
+            cursor: pointer;
+        }
+
+        &__btn{
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background-color: rgba($color: #5391cf, $alpha: 1.0);
+            color: #fff;
+            font-size: 36px;
+            bottom: 5px;
+            left: calc(50% + 80px);
+            cursor: pointer;
+            outline: none;
+            
+
+            &:hover{
+                background-color: rgba($color: #3571ad, $alpha: 1.0);
+            }
+
+        }
+
+        %input-time{
+            border: none;
+            color: #2a2c2d;
+            font-size: 14px;
+            font-family: 'Open Sans', sans-serif;
+            border: 0.5px solid rgba($color: #3571ad, $alpha: 1.0);
+            border-radius: 2px;
+            padding: 2px;
+            margin-bottom:  15px;
+            outline: none;
+
+            &:valid{
+                box-shadow: 0 0 5px rgba($color: #17eb21, $alpha: 1.0);
+            }
+            &:invalid{
+                box-shadow: 0 0 5px rgba($color: #eb1717, $alpha: 1.0);
+            }
+        }
+
+        &__change-event{
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            height: 100%;
+            max-width: 400px;
+            max-height: 300px;
+            box-shadow: 0 0 10px rgba($color: #000000, $alpha: .5);
+            background-color: rgba($color: #fff, $alpha: 1.0);
+            border-radius: 10px;
+        }
+
+        &__start-change{
+            @extend%input-time;
+        }
+        &__duration-change{
+            @extend%input-time;
+        }
+        &__setting-event{
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            height: 100%;
+            max-width: 500px;
+            max-height: 400px;
+            box-shadow: 0 0 10px rgba($color: #000000, $alpha: .5);
+            background-color: rgba($color: #fff, $alpha: 1.0);
+
+
+            &.hidden{
+                display: none;
+            }
+            
+
+        }
+        &__input-time, &__input-duration{
+            @extend%input-time;
+        }
+        &__label-time{
+           font-size: 16px;
+        }
+        &__form-event{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        input[type=submit]{
+            padding: 4px;
+            cursor: pointer;
+        }
+        &__title-event{
+            margin-bottom: 20px;
+        }
+        input{
+            margin-bottom: 10px;
+        }
+        &__btn-close{
+            display: flex;
+            position: absolute;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            right: 0;
+            top: 0;
+            transform: translate(50%, -50%);
+            background-color: rgba($color: #ce2525, $alpha: 1);
+            border-radius: 50%;
+            font-size: 32px;
+            color: #fff;
+            cursor: pointer;
+        
+        }
+
+     
+    }
+}
+
+
