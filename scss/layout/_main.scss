@@ -12,7 +12,9 @@
             list-style: none;
         }
 
-        &__event{
+        &__list-event{
+            list-style: none;
+            position: relative;
             width: 20rem;     
         }
 
@@ -22,7 +24,7 @@
 
         &__hour{ 
             @extend%time;             
-            
+            font-size: 1.6rem;
             &::before{
                 display: block;
                 content: "";
@@ -40,22 +42,10 @@
 
         &__half-hour{
             @extend%time;        
-            
+            font-size: 1.2rem;
             .calendar__time{
                 font-size: 1.4rem;
             }
-        }
-
-        &__time{
-            color: rgb(138, 133, 133);
-            line-height: .85;
-        }
-
-        &__event{   
-            
-            list-style: none;
-            position: relative;
-  
         }
         &__event-item{
         
@@ -134,7 +124,7 @@
         &__duration-change{
             @extend%input-time;
         }
-        &__setting-event{
+        &__form-add-event{
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -162,11 +152,7 @@
         &__label-time{
            font-size: 16px;
         }
-        &__form-event{
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+
         input[type=submit]{
             padding: 4px;
             cursor: pointer;

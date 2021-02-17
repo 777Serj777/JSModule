@@ -28,168 +28,153 @@ class EventPlanner {
     ];
 
     constructor(){
-        this.from = '1:00';
-        this.to = '17:00';
-        this.container = document.querySelector('.calendar');
-        this.wraperForEvents = cElem('ul', 'calendar__event');
-        this.renderCalendar();
-        this.renderEvent(this.wraperForEvents);
-        this.container.append(this.wraperForEvents);
-        this.renderBtnToAddEvent();
-       
+        this.container = document.querySelector('.calendar');   
+        this.renderCalendar(this.container);
+        this.renderEvent(this.getEvent);
     }
-
-    set _addEvent(event){
+    set setEvent(event){
         this.#arrEvent.push(event);
-        this.renderEvent(this.wraperForEvents);    
-
     }
-    get _getEvent(){
+    get getEvent(){
         return this.#arrEvent;
     }
+    setStatus(event){
+        let {start, duration, title, color} = event;
 
-    renderCalendar(){
+        this.setEvent = {start, duration, title};
+  
+        let listEvent = Object.assign(this.getEvent);
 
-        const start = this.from.split(':')[0];
-        const end = this.to.split(':')[0];
+        if(color) listEvent[listEvent.length - 1].color = color;
      
+        this.renderEvent(listEvent);
+    }
+    createTimeline(){
 
-        let wrapTime = cElem('ul', 'calendar__list-time');
+        let wrapper = cElem('ul', 'calendar__list-time');
 
-        for (let index = start; index <= end; index++) {
+        for (let index = 1; index <= 17; index++) {
   
             let hour = cElem('li', 'calendar__hour');
             let half = cElem('li', 'calendar__half-hour');
-            let pt = cElem('p', 'calendar__time');
+      
+            hour.innerText = `${index}:00`;
+            wrapper.append(hour);
 
-            pt.innerText = `${index}:00`
-            hour.append(pt);
-            wrapTime.append(hour);
-
-            if(index < end) {
-                pt = cElem('p', 'calendar__time');
-                pt.innerText = `${index}:30`
-                half.append(pt);
-                wrapTime.append(half);            
-            }
-              
+            if(index < 17) {
+                half.innerText = `${index}:30`;
+                wrapper.append(half);            
+            }      
         }
 
-        this.container.innerHTML = ""; 
-       
-        this.container.prepend(wrapTime);
-
-        return  this.container;
+        return wrapper;
 
     }
-
-    renderBtnToAddEvent(){
+    createBtnAddEvent(){
+    
         let btnAddEvent = cElem('button', 'calendar__btn');
+
         btnAddEvent.innerText = "+";
 
-        this.container.append(btnAddEvent);
-
-        btnAddEvent.addEventListener('click', () => {
-            this.createFormToAddEvent();      
-        });
+        btnAddEvent.addEventListener('click', this.createFormToAddEvent.bind(this));
+        
+        return btnAddEvent;
     }
 
     createFormToAddEvent(){
 
-     
-        let windowForAddEvent = cElem('div', 'calendar__setting-event');
-        let form = cElem('form', 'calendar__form-event');
+        let formForAddEvent = cElem('form', 'calendar__form-add-event');
 
-        windowForAddEvent.innerHTML  = `<h2 class="calendar__title-event">Создать событие</h2>`;
-
-        form.innerHTML = `
-            <label for="calendar__input-time" class="calendar__label-time">Время</label>
+        formForAddEvent.innerHTML = `
+            <label for="calendar__input-time" class="calendar__label-time">Time</label>
             <input type="time" name = "time" class="calendar__input-time" min="01:00" max="16:59" required>
-            <label for="calendar__input-duration" class="calendar__label-time">Продолжительность</label>
+            <label for="calendar__input-duration" class="calendar__label-time">Duration</label>
             <input type="time" name = "duration" class="calendar__input-duration" min="00:00" max="17:00" required>
             <input type="text" name = "text" class="calendar__input-text">
             <input type="color" name = "color" value = "#6E9ECF" class="calendar__input-text">
-            <input type="submit" name = "submit" value = "Создать">
+            <input type="submit" name = "submit" value = "Create">
         `;
 
         let btn = cElem('div', 'calendar__btn-close')
         btn.innerHTML= '&times;'
 
         btn.addEventListener('click', () => {
-            windowForAddEvent.remove();
+            formForAddEvent.remove();
         });
     
-        form.elements.submit.addEventListener('click', (e) => {
+        formForAddEvent.elements.submit.addEventListener('click', (e) => {
             e.preventDefault();
-
-            if(!this.startValidation(form)) return;
-            
+            if(!this.addNewEvent(formForAddEvent.elements)) return;        
             btn.click();
         });
 
-        windowForAddEvent.append(form, btn)
-        this.container.append(windowForAddEvent);
+        formForAddEvent.append(btn);
+        this.container.append(formForAddEvent);
     }
     
-    startValidation(form){
+    addNewEvent(elements){
 
-        if(!form.elements.time.validity.valid) return false;
+        if(!elements.time.validity.valid) return false;
 
-        let haveTime = this.to.split(':').reduce((p, v)  => {
-            return p * 60 + (+v)
-        });
- 
-        let time = form.elements.time.value.split(':');
+        let haveTime =  17 * 60;
        
-        time = ((+time[0] * 60) - (8 * 60)) + (+time[1]);
-         
-        let duration = form.elements.duration.value.split(':');
+
+        let time = elements.time.value.split(':');
+        let duration = elements.duration.value.split(':');
+
+
+        time = ((+time[0] * 60)) + (+time[1]);
         duration = (+duration[0] * 60) + +duration[1];
 
-        if(duration + (time + 8 * 60) > haveTime) return false;
-
+        if(duration + time > haveTime) return false;
+ 
         let event = {
-            start: time,
+            start: time - 8 * 60,
             duration: duration,
-            title: form.elements.text.value,
-            color:  form.elements.color.value
+            title: elements.text.value,
+            color: elements.color.value
         }
 
-        this._addEvent = event;
+        this.setStatus(event);
         
         return true;
     }
-    createEvent(){
-        let listEvents = this._getEvent.sort( (a, b) => a.start - b.start);
-        let oneMinute = document.querySelector('.calendar__hour').clientHeight * 2 / 60;
-           
-        listEvents = listEvents.map(item => {
+    createEvent(listEvent){
+    
+        const minuteInPixels = document.querySelector('.calendar__hour').clientHeight * 2 / 60;
+
+
+       
+        listEvent = listEvent.map((event) => {
 
             return {
-                start: (7 * 60 * oneMinute) + (item.start * oneMinute),
-                end: (7 * 60 * oneMinute) + (item.start * oneMinute) + (item.duration * oneMinute),
-                height: (item.duration * oneMinute),
-                width: 0,
+                start : (7 * 60 + event.start) * minuteInPixels,
+                duration : event.duration * minuteInPixels,
+                title: event.title,
+                color : event.color || '#6E9ECF',
                 left: 0,
-                title: item.title,
+                width: 100,
                 beforeElem: 0,             
                 afterElem: 0,
-                color: item.color || '#6E9ECF'             
             }
-        });
+        
+        }).sort((a, b) => a.start - b.start);
 
-        listEvents.forEach((item, index, arr) => {
+
+        
+
+       listEvent.forEach((item, index, arr) => {
             let countStepBack = [];
             let countStepUp = 0;
-            let {start, end} = item;
-            
+            let {start, duration} = item;
+            let end = start + duration;
             for (let i = index; i >= 0; i--) {
 
                 if(i === index) continue;
 
-                if(start < arr[i].end){
+                if(start < (arr[i].duration + arr[i].start)){
                     countStepBack.push(arr[i]);   
-                    if(end > arr[i].end ) end = arr[i].end;
+                    if(end > (arr[i].duration + arr[i].start) ) end = (arr[i].duration + arr[i].start);
                 }
             
             }
@@ -197,7 +182,7 @@ class EventPlanner {
       
                 if(i === index) continue;
               
-                if(listEvents[i].start < end){
+                if(listEvent[i].start < end){
                     countStepUp++;
                 }
 
@@ -208,7 +193,7 @@ class EventPlanner {
         
         });
         
-        listEvents.forEach((item) => {
+        listEvent.forEach((item) => {
             
             let {afterElem, beforeElem} = item;
             let tmpWidth = 100;
@@ -231,22 +216,29 @@ class EventPlanner {
             item.width = tmpWidth / (afterElem + 1);
             
         });
-        console.log(listEvents);
-        return listEvents;
-       
+        
+        console.log(listEvent);
+
+       return listEvent;
     }
-    listenerEvent(item){
-  
+   
+    renderCalendar(container){
+        let timeLine =  this.createTimeline();
+        let buttonAddEvent =  this.createBtnAddEvent();
+        let wrapForEvent = cElem('ul', 'calendar__list-event');
+
+        container.append(timeLine, wrapForEvent, buttonAddEvent);
     }
 
-    renderEvent(container){
+    renderEvent(listEvent){
+        let container = document.querySelector('.calendar__list-event');
         container.innerHTML = "";
 
-       this.createEvent().forEach(item => {
+        this.createEvent(listEvent).forEach(item => {
 
             let event = cElem('li', "calendar__event-item");
             event.style.top = item.start+'px';
-            event.style.height = item.height+'px';
+            event.style.height = item.duration+'px';
             event.style.width = item.width+'%';
             event.style.left = item.left+'%';
             event.style.backgroundColor = item.color+'50';
@@ -256,7 +248,9 @@ class EventPlanner {
             container.append(event);
 
         });
+
         console.log(container);
+
     }
   
 }
