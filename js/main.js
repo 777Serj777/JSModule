@@ -32,24 +32,37 @@ class EventPlanner {
         this.renderCalendar(this.container);
         this.renderEvent(this.getEvent);
     }
-    set setEvent(event){
+    set setEvent({event, index}){
+     
+        if(index !== undefined){
+          
+            this.#arrEvent[index] = event;
+            return;
+        }
+       
         this.#arrEvent.push(event);
     }
     get getEvent(){
-        return this.#arrEvent;
+        return this.#arrEvent.map(item => {
+            return {...item}
+        });
     }
-    setStatus(event){
-        let {start, duration, title, color} = event;
+    setStatus(eventProperty, index){
+        let {start, duration, title, color} = eventProperty;
+    
+        this.setEvent = {event: {start, duration, title}, index};
+        
+        let listEvent = this.getEvent;
+        
+        if(index !== undefined && color) listEvent[index].color = color
+      
+        else if(color) listEvent[listEvent.length - 1].color = color;
+        
+        console.log(this.getEvent);
 
-        this.setEvent = {start, duration, title};
-  
-        let listEvent = Object.assign(this.getEvent);
-
-        if(color) listEvent[listEvent.length - 1].color = color;
-     
         this.renderEvent(listEvent);
     }
-    createTimeline(){
+    _createTimeline(){
 
         let wrapper = cElem('ul', 'calendar__list-time');
 
@@ -76,12 +89,12 @@ class EventPlanner {
 
         btnAddEvent.innerText = "+";
 
-        btnAddEvent.addEventListener('click', this.createFormToAddEvent.bind(this));
+        btnAddEvent.addEventListener('click', () => {this.renderFormToAddEvent()});
         
         return btnAddEvent;
     }
 
-    createFormToAddEvent(){
+    renderFormToAddEvent(config){
 
         let formForAddEvent = cElem('form', 'calendar__form-add-event');
 
@@ -95,33 +108,53 @@ class EventPlanner {
             <input type="submit" name = "submit" value = "Create">
         `;
 
+        if(config){
+            formForAddEvent.time.value = config.start;
+            formForAddEvent.duration.value = config.duration;
+            formForAddEvent.text.value = config.title;
+            formForAddEvent.color.value = config.color;
+            formForAddEvent.submit.value = 'Change'
+        }
+
         let btn = cElem('div', 'calendar__btn-close')
         btn.innerHTML= '&times;'
 
         btn.addEventListener('click', () => {
             formForAddEvent.remove();
         });
-    
+ 
         formForAddEvent.elements.submit.addEventListener('click', (e) => {
             e.preventDefault();
-            if(!this.addNewEvent(formForAddEvent.elements)) return;        
+            
+            if(formForAddEvent.elements.submit.value === 'Create'){
+                if(!this._addNewEvent(formForAddEvent.elements)) return;
+            }
+            if(formForAddEvent.elements.submit.value === 'Change'){
+                if(!this.changeEvent(formForAddEvent.elements, config.index)) return;
+            }
+            
             btn.click();
         });
 
         formForAddEvent.append(btn);
         this.container.append(formForAddEvent);
     }
+    changeEvent(elements, indexChangeElem){
+        
+        let event = this._addNewEvent(elements, true);
+       
+        this.setStatus(event, indexChangeElem);
+      
+        return true;
+    }
     
-    addNewEvent(elements){
+    _addNewEvent(elements, change){
 
         if(!elements.time.validity.valid) return false;
 
         let haveTime =  17 * 60;
-       
-
         let time = elements.time.value.split(':');
         let duration = elements.duration.value.split(':');
-
 
         time = ((+time[0] * 60)) + (+time[1]);
         duration = (+duration[0] * 60) + +duration[1];
@@ -135,16 +168,16 @@ class EventPlanner {
             color: elements.color.value
         }
 
+        if(change) return event;
+
         this.setStatus(event);
-        
+
         return true;
     }
-    createEvent(listEvent){
+    _createEvent(listEvent){
     
         const minuteInPixels = document.querySelector('.calendar__hour').clientHeight * 2 / 60;
-
-
-       
+   
         listEvent = listEvent.map((event) => {
 
             return {
@@ -154,76 +187,74 @@ class EventPlanner {
                 color : event.color || '#6E9ECF',
                 left: 0,
                 width: 100,
-                beforeElem: 0,             
-                afterElem: 0,
-            }
-        
-        }).sort((a, b) => a.start - b.start);
+                arrElemBefore: [],
+                arrElemAfter: []
+            }      
+        })
 
+        .sort((a, b) => a.start - b.start);
 
-        
-
-       listEvent.forEach((item, index, arr) => {
-            let countStepBack = [];
-            let countStepUp = 0;
+        listEvent.forEach((item, index, arr) => {
+          
             let {start, duration} = item;
             let end = start + duration;
+
             for (let i = index; i >= 0; i--) {
 
                 if(i === index) continue;
 
                 if(start < (arr[i].duration + arr[i].start)){
-                    countStepBack.push(arr[i]);   
+                    item.arrElemBefore.push(arr[i]);   
                     if(end > (arr[i].duration + arr[i].start) ) end = (arr[i].duration + arr[i].start);
-                }
-            
+                } 
             }
             for (let i = index; i < arr.length; i++) {   
       
                 if(i === index) continue;
               
                 if(listEvent[i].start < end){
-                    countStepUp++;
+                    item.arrElemAfter.push(listEvent[i]);
                 }
 
             }
-            
-            item.beforeElem = countStepBack;
-            item.afterElem = countStepUp;
-        
+              
         });
         
         listEvent.forEach((item) => {
-            
-            let {afterElem, beforeElem} = item;
+            let {arrElemAfter: afterElem, arrElemBefore} = item;
             let tmpWidth = 100;
             let left = 0;
+            let beforeElem = [];
 
-            for (let i = 0; i < beforeElem.length; i++) {  
-                tmpWidth -= beforeElem[i].width;
-        
-                beforeElem.forEach(element => {
-                    
-                    if(element.left === left){
-                        left = element.left + element.width;
-                        
-                    }
-               
-                });
-                item.left = left;
+            beforeElem = arrElemBefore.sort((a , b) => { return a.left - b.left});
+
+            for (let index = 0; index < beforeElem.length; index++) {
+                
+                let event  = beforeElem[index];
+                   
+                if(event.left === left){
+                    left +=  event.width;  
+                }             
+                else{
+                    tmpWidth = event.left - left;
+                    item.left = left; 
+                    break;
+                }
+                 
+                tmpWidth -= event.width;
+                item.left = left; 
             }
-          
-            item.width = tmpWidth / (afterElem + 1);
-            
+         
+            item.width = tmpWidth / (afterElem.length + 1);
+         
         });
-        
-        console.log(listEvent);
-
+    
        return listEvent;
     }
+ 
    
     renderCalendar(container){
-        let timeLine =  this.createTimeline();
+        let timeLine =  this._createTimeline();
         let buttonAddEvent =  this.createBtnAddEvent();
         let wrapForEvent = cElem('ul', 'calendar__list-event');
 
@@ -233,8 +264,8 @@ class EventPlanner {
     renderEvent(listEvent){
         let container = document.querySelector('.calendar__list-event');
         container.innerHTML = "";
-
-        this.createEvent(listEvent).forEach(item => {
+    
+        this._createEvent(listEvent).forEach((item, index) => {
 
             let event = cElem('li', "calendar__event-item");
             event.style.top = item.start+'px';
@@ -245,15 +276,31 @@ class EventPlanner {
             event.style.boxShadow = `3px 0 0 inset ${item.color}`;
             event.innerText = item.title;
 
-            container.append(event);
+            event.addEventListener('click', () => {
+     
+                const minuteInPixels = document.querySelector('.calendar__hour').clientHeight * 2 / 60;
+            
+                let minute  = item.start / minuteInPixels % 60;
+                let start  = (item.start / minuteInPixels  - minute) / 60  + 1 ;
+            
+                let timeStart = `${(start > 9)? start : "0" + start}:${(minute > 9) ? minute:"0"+minute}`;
 
-        });
+                minute  = item.duration / minuteInPixels % 60;
+                start  = (item.duration / minuteInPixels  - minute) / 60;
 
-        console.log(container);
-
-    }
-  
+                let duration = `${(start > 9)? start : "0" + start}:${(minute > 9) ? minute:"0"+minute}`;
+           
+                this.renderFormToAddEvent({
+                    start: timeStart,
+                    duration: duration,
+                    title: item.title || "",
+                    color: item.color || "#6E9ECF",
+                    index
+                 });    
+            })
+            container.append(event);           
+        });   
+    }  
 }
-
 
 let calendar = new EventPlanner();
