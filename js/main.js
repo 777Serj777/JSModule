@@ -33,7 +33,7 @@ class EventPlanner {
         this.renderEvent(this.getEvent);
     }
     set setEvent({event, index}){
-     
+        
         if(index !== undefined){
           
             this.#arrEvent[index] = event;
@@ -58,7 +58,7 @@ class EventPlanner {
       
         else if(color) listEvent[listEvent.length - 1].color = color;
         
-        console.log(this.getEvent);
+        console.log(listEvent);
 
         this.renderEvent(listEvent);
     }
@@ -178,7 +178,7 @@ class EventPlanner {
     
         const minuteInPixels = document.querySelector('.calendar__hour').clientHeight * 2 / 60;
    
-        listEvent = listEvent.map((event) => {
+        listEvent = listEvent.map((event, index) => {
 
             return {
                 start : (7 * 60 + event.start) * minuteInPixels,
@@ -188,7 +188,8 @@ class EventPlanner {
                 left: 0,
                 width: 100,
                 arrElemBefore: [],
-                arrElemAfter: []
+                arrElemAfter: [],
+                index: index
             }      
         })
 
@@ -215,9 +216,7 @@ class EventPlanner {
                 if(listEvent[i].start < end){
                     item.arrElemAfter.push(listEvent[i]);
                 }
-
-            }
-              
+            }           
         });
         
         listEvent.forEach((item) => {
@@ -251,8 +250,7 @@ class EventPlanner {
     
        return listEvent;
     }
- 
-   
+  
     renderCalendar(container){
         let timeLine =  this._createTimeline();
         let buttonAddEvent =  this.createBtnAddEvent();
@@ -264,8 +262,8 @@ class EventPlanner {
     renderEvent(listEvent){
         let container = document.querySelector('.calendar__list-event');
         container.innerHTML = "";
-    
-        this._createEvent(listEvent).forEach((item, index) => {
+
+        this._createEvent(listEvent).forEach((item) => {
 
             let event = cElem('li', "calendar__event-item");
             event.style.top = item.start+'px';
@@ -277,7 +275,7 @@ class EventPlanner {
             event.innerText = item.title;
 
             event.addEventListener('click', () => {
-     
+         
                 const minuteInPixels = document.querySelector('.calendar__hour').clientHeight * 2 / 60;
             
                 let minute  = item.start / minuteInPixels % 60;
@@ -295,7 +293,7 @@ class EventPlanner {
                     duration: duration,
                     title: item.title || "",
                     color: item.color || "#6E9ECF",
-                    index
+                    index: item.index
                  });    
             })
             container.append(event);           
