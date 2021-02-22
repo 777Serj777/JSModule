@@ -26,41 +26,47 @@ class EventPlanner {
         {start:  370, duration: 45, title: 'Follow up with designer'},
         {start:  405, duration: 30, title: 'Skype ddd call'}
     ];
-
+    #listEvent = [];
+    
     constructor(){
         this.container = document.querySelector('.calendar');   
         this.renderCalendar(this.container);
-        this.renderEvent(this.getEvent);
+        this.#listEvent = this.getEvent;
+        this.renderEvent(this.#listEvent);
     }
     set setEvent({event, index}){
         
-        if(index !== undefined){
-          
+        if(index !== undefined){          
             this.#arrEvent[index] = event;
             return;
         }
        
         this.#arrEvent.push(event);
     }
+    
     get getEvent(){
         return this.#arrEvent.map(item => {
             return {...item}
         });
     }
     setStatus(eventProperty, index){
-        let {start, duration, title, color} = eventProperty;
-    
-        this.setEvent = {event: {start, duration, title}, index};
-        
-        let listEvent = this.getEvent;
-        
-        if(index !== undefined && color) listEvent[index].color = color
-      
-        else if(color) listEvent[listEvent.length - 1].color = color;
-        
-        console.log(listEvent);
+       
+        if(!(eventProperty instanceof Array) ){
+         
+            let {start, duration, title, color} = eventProperty;
+            let event = {start, duration, title};
 
-        this.renderEvent(listEvent);
+            this.setEvent = {event, index};
+            
+            if(index !== undefined){
+                this.#listEvent[index] = {color, ...event}
+            }
+            else{
+                this.#listEvent.push({color, ...event});
+            }
+        }
+
+        this.renderEvent(this.#listEvent);
     }
     _createTimeline(){
 
@@ -105,7 +111,7 @@ class EventPlanner {
             <input type="time" name = "duration" class="calendar__input-duration" min="00:00" max="17:00" required>
             <input type="text" name = "text" class="calendar__input-text">
             <input type="color" name = "color" value = "#6E9ECF" class="calendar__input-text">
-            <input type="submit" name = "submit" value = "Create">
+            <input type="submit" name = "create" value = "Create">
         `;
 
         if(config){
@@ -113,7 +119,18 @@ class EventPlanner {
             formForAddEvent.duration.value = config.duration;
             formForAddEvent.text.value = config.title;
             formForAddEvent.color.value = config.color;
-            formForAddEvent.submit.value = 'Change'
+            formForAddEvent.create.value = 'Change';
+            let del = cElem('input');
+            del.value = 'Delete';
+            del.name = 'delete';
+            del.type = 'submit';
+            formForAddEvent.append(del)
+          
+            formForAddEvent.elements.delete.addEventListener('click', (e) => {
+                e.preventDefault();      
+                this.removeEvent(config.index);
+                btn.click();
+            });
         }
 
         let btn = cElem('div', 'calendar__btn-close')
@@ -123,13 +140,15 @@ class EventPlanner {
             formForAddEvent.remove();
         });
  
-        formForAddEvent.elements.submit.addEventListener('click', (e) => {
+     
+
+        formForAddEvent.elements.create.addEventListener('click', (e) => {
             e.preventDefault();
             
-            if(formForAddEvent.elements.submit.value === 'Create'){
+            if(formForAddEvent.elements.create.value === 'Create'){
                 if(!this._addNewEvent(formForAddEvent.elements)) return;
             }
-            if(formForAddEvent.elements.submit.value === 'Change'){
+            if(formForAddEvent.elements.create.value === 'Change'){
                 if(!this.changeEvent(formForAddEvent.elements, config.index)) return;
             }
             
@@ -147,7 +166,11 @@ class EventPlanner {
       
         return true;
     }
-    
+    removeEvent(index){
+        this.#arrEvent.splice(index, 1);
+        this.#listEvent.splice(index, 1);
+        this.setStatus(this.#listEvent)
+    }
     _addNewEvent(elements, change){
 
         if(!elements.time.validity.valid) return false;
@@ -239,7 +262,7 @@ class EventPlanner {
                     item.left = left; 
                     break;
                 }
-                 
+                                 
                 tmpWidth -= event.width;
                 item.left = left; 
             }
@@ -262,9 +285,9 @@ class EventPlanner {
     renderEvent(listEvent){
         let container = document.querySelector('.calendar__list-event');
         container.innerHTML = "";
-
+  
         this._createEvent(listEvent).forEach((item) => {
-
+            
             let event = cElem('li', "calendar__event-item");
             event.style.top = item.start+'px';
             event.style.height = item.duration+'px';
@@ -279,7 +302,7 @@ class EventPlanner {
                 const minuteInPixels = document.querySelector('.calendar__hour').clientHeight * 2 / 60;
             
                 let minute  = item.start / minuteInPixels % 60;
-                let start  = (item.start / minuteInPixels  - minute) / 60  + 1 ;
+                let start  = (item.start / minuteInPixels  - minute) / 60  + 1;
             
                 let timeStart = `${(start > 9)? start : "0" + start}:${(minute > 9) ? minute:"0"+minute}`;
 
