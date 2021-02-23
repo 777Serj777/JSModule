@@ -22,6 +22,39 @@
             height: 12rem;
         }
 
+        &__event-start{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: fixed;
+        
+            width: 200px;
+            height: 100px;
+            top: 10%;
+            right: 10%;
+            border-radius: 5px;
+            box-shadow: 0 0 6px rgba($color: #000000, $alpha: .5);
+
+            &-title{
+                width: 100%;
+                position: relative;
+                margin-top: 10px;
+                padding: 0 15px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            &-time{
+                margin-top: 10px;
+            }
+            &-message{
+                margin: auto 0;
+                text-transform: uppercase;
+                font-size: 1.4rem;
+                font-weight: 700;
+            }
+        }
+
         &__hour{ 
             @extend%time;             
             font-size: 1.6rem;

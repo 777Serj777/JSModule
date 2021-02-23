@@ -169,7 +169,7 @@ class EventPlanner {
     removeEvent(index){
         this.#arrEvent.splice(index, 1);
         this.#listEvent.splice(index, 1);
-        this.setStatus(this.#listEvent)
+        this.setStatus(this.#listEvent);
     }
     _addNewEvent(elements, change){
 
@@ -273,6 +273,37 @@ class EventPlanner {
     
        return listEvent;
     }
+
+    listenerEvents(event, element){
+        let minNow = new Date().getHours() * 60 + new Date().getMinutes();
+        let secNow = new Date().getSeconds();
+
+
+        let minEvent = event.start.split(':').reduce((pValue, nVelue) => {
+            return (pValue * 60) + +nVelue;
+        });
+
+        if(minEvent > minNow){
+    
+            setTimeout(() => {
+
+                element.style.backgroundColor = '#00FF0050';
+                element.style.boxShadow = `3px 0 0 inset #00FF00`;
+
+                let modWindow = this.renderModalWindow(event);
+
+                setTimeout(() => {
+                    modWindow.remove();
+                },2000);
+         
+            }, ((minEvent - minNow) * 60 * 1000) - secNow * 1000);
+        }
+        else{
+            event.color = "#DC143C";
+        }
+
+        return event;
+    }
   
     renderCalendar(container){
         let timeLine =  this._createTimeline();
@@ -281,45 +312,73 @@ class EventPlanner {
 
         container.append(timeLine, wrapForEvent, buttonAddEvent);
     }
+    
+    renderModalWindow(event){
+
+        let startEvent = cElem('div', 'calendar__event-start');
+        let title = cElem('p', 'calendar__event-start-title');
+        let time = cElem('p', 'calendar__event-start-time');
+        let message = cElem('p', 'calendar__event-start-message');
+
+        title.innerHTML = event.title;
+        time.innerHTML = event.start;
+        message.innerHTML = "event started";
+
+
+        startEvent.append(title, time, message);
+
+        this.container.append(startEvent);
+        
+        return startEvent;
+    }
 
     renderEvent(listEvent){
         let container = document.querySelector('.calendar__list-event');
         container.innerHTML = "";
-  
+        
         this._createEvent(listEvent).forEach((item) => {
-            
-            let event = cElem('li', "calendar__event-item");
-            event.style.top = item.start+'px';
-            event.style.height = item.duration+'px';
-            event.style.width = item.width+'%';
-            event.style.left = item.left+'%';
-            event.style.backgroundColor = item.color+'50';
-            event.style.boxShadow = `3px 0 0 inset ${item.color}`;
-            event.innerText = item.title;
 
-            event.addEventListener('click', () => {
-         
-                const minuteInPixels = document.querySelector('.calendar__hour').clientHeight * 2 / 60;
             
-                let minute  = item.start / minuteInPixels % 60;
-                let start  = (item.start / minuteInPixels  - minute) / 60  + 1;
+            const minuteInPixels = document.querySelector('.calendar__hour').clientHeight * 2 / 60;
             
-                let timeStart = `${(start > 9)? start : "0" + start}:${(minute > 9) ? minute:"0"+minute}`;
+            let minute  = item.start / minuteInPixels % 60;
+            let start  = (item.start / minuteInPixels  - minute) / 60  + 1;
+        
+            let timeStart = `${(start > 9)? start : "0" + start}:${(minute > 9) ? minute:"0"+minute}`;
 
-                minute  = item.duration / minuteInPixels % 60;
-                start  = (item.duration / minuteInPixels  - minute) / 60;
+            minute  = item.duration / minuteInPixels % 60;
+            start  = (item.duration / minuteInPixels  - minute) / 60;
 
-                let duration = `${(start > 9)? start : "0" + start}:${(minute > 9) ? minute:"0"+minute}`;
-           
-                this.renderFormToAddEvent({
-                    start: timeStart,
-                    duration: duration,
-                    title: item.title || "",
-                    color: item.color || "#6E9ECF",
-                    index: item.index
-                 });    
-            })
-            container.append(event);           
+            let duration = `${(start > 9)? start : "0" + start}:${(minute > 9) ? minute:"0"+minute}`;
+       
+
+            let event = {
+                start: timeStart,
+                duration: duration,
+                title: item.title || "",
+                color: item.color || "#6E9ECF",
+                index: item.index
+            }
+            let element = cElem('li', "calendar__event-item");
+
+            event = this.listenerEvents(event, element);
+
+            item.color = event.color;
+
+            element.style.top = item.start+'px';
+            element.style.height = item.duration+'px';
+            element.style.width = item.width+'%';
+            element.style.left = item.left+'%';
+            element.style.backgroundColor = item.color+'50';
+            element.style.boxShadow = `3px 0 0 inset ${item.color}`;
+            element.innerText = item.title;
+
+            element.addEventListener('click', () => {
+                this.renderFormToAddEvent(event);    
+            });
+
+            container.append(element);    
+            
         });   
     }  
 }
